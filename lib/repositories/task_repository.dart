@@ -1,4 +1,3 @@
-
 import '../core/db/database_helper.dart';
 import '../model/task_model.dart';
 
@@ -8,9 +7,9 @@ class TaskRepository {
     print(tasks);
     return tasks.map((e) => TaskModel.fromMap(e)).toList();
   }
+
   Future<TaskModel?> getTaskById(int? id) async {
-    final db = await DatabaseHelper.initDB();
-    final task =await DatabaseHelper.getSingleTaskById(id);
+    final task = await DatabaseHelper.getSingleTaskById(id);
 
     if (task.isNotEmpty) {
       return TaskModel.fromMap(task.first);
@@ -18,14 +17,33 @@ class TaskRepository {
       return null;
     }
   }
-  Future<void> addTask(TaskModel task) async {
-    await DatabaseHelper.insertTask(task.toMap());
+
+  Future<TaskModel?> addTask(TaskModel task) async {
+    final taskId = await DatabaseHelper.insertTask(task.toMap());
+    final newtask = await DatabaseHelper.getSingleTaskById(taskId);
+
+    if (newtask.isNotEmpty) {
+      return TaskModel.fromMap(newtask.first);
+    } else {
+      return null;
+    }
   }
-  Future<void> updateTask(TaskModel task) async {
+
+  Future<TaskModel?> updateTask(TaskModel task) async {
+    print("fsdkjfhdskfjshd");
+    print(task.id);
     await DatabaseHelper.updateTask(task.toMap());
+    final newtask = await DatabaseHelper.getSingleTaskById(task.id);
+    print("fsdfgdskjfhsdkfjshd");
+    print(newtask);
+    if (newtask.isNotEmpty) {
+      return TaskModel.fromMap(newtask.first);
+    } else {
+      return null;
+    }
   }
+
   Future<void> deleteTask(TaskModel? task) async {
     await DatabaseHelper.deleteTask(task?.id!);
   }
-
 }

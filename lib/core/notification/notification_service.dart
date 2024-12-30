@@ -1,81 +1,99 @@
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:timezone/timezone.dart' as tz;
+import 'package:awesome_notifications/awesome_notifications.dart';
+import 'package:flutter/material.dart';
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
-  final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
-  FlutterLocalNotificationsPlugin();
 
   factory NotificationService() => _instance;
 
   NotificationService._internal();
 
-  Future<void> init() async {
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const iosSettings = DarwinInitializationSettings();
-    const initializationSettings = InitializationSettings(
-      android: androidSettings,
-      iOS: iosSettings,
-    );
-
-    await _flutterLocalNotificationsPlugin.initialize(
-      initializationSettings,
+  /// Initialize the notification service
+  void initialize() {
+    AwesomeNotifications().initialize(
+      null,
+      [
+        NotificationChannel(
+          channelKey: 'task_reminders',
+          channelName: 'Task Reminders',
+          channelDescription: 'Notifications for task reminders',
+          defaultColor: const Color(0xFF9D50DD),
+          importance: NotificationImportance.High,
+          channelShowBadge: true,
+        ),
+      ],
     );
   }
 
-  Future<void> scheduleNotification(int id, String title, String body, DateTime scheduleDate) async {
-    const androidDetails = AndroidNotificationDetails(
-      'task_channel',
-      'Task Notifications',
-      importance: Importance.high,
-      priority: Priority.high,
-    );
-    const iosDetails = DarwinNotificationDetails();
-
-    const notificationDetails = NotificationDetails(
-      android: androidDetails,
-      iOS: iosDetails,
-    );
-    print("Gfsgljhfglkjhglkjdfsg");
-    print(scheduleDate);
-    final now = DateTime.now();
-    final isToday = scheduleDate.year == now.year &&
-        scheduleDate.month == now.month &&
-        scheduleDate.day == now.day;
-    if (isToday) {
-      final adjustedTime = now.add(const Duration(minutes: 1));
-      scheduleDate = DateTime(
-        scheduleDate.year,
-        scheduleDate.month,
-        scheduleDate.day,
-        adjustedTime.hour,
-        adjustedTime.minute,
-        adjustedTime.second,
-      );
+  /// Request permission to send notifications
+  Future<void> requestPermission() async {
+    bool isAllowed = await AwesomeNotifications().isNotificationAllowed();
+    if (!isAllowed) {
+      await AwesomeNotifications().requestPermissionToSendNotifications();
     }
-    final tzDateTime = tz.TZDateTime.local(
-      scheduleDate.year,
-      scheduleDate.month,
-      scheduleDate.day,
-      scheduleDate.hour,
-      scheduleDate.minute,
-      scheduleDate.second,
-    );
-print("Gfsgljhfglkjhglkjdfsg");
-print(tzDateTime);
-    await _flutterLocalNotificationsPlugin.zonedSchedule(
-      id,
-      title,
-      body,
-      tzDateTime,
-      notificationDetails,
-      uiLocalNotificationDateInterpretation:
-      UILocalNotificationDateInterpretation.absoluteTime,
-      androidScheduleMode: AndroidScheduleMode.exact
+  }
+
+  /// Schedule a task reminder
+  Future<void> scheduleTaskReminder({
+    required String taskId,
+    required String taskTitle,
+    required DateTime scheduleTime,
+  }) async {
+    await AwesomeNotifications().createNotification(
+      content: NotificationContent(
+        id: int.parse(taskId), // Unique ID for the notification
+        channelKey: 'task_reminders',
+        title: 'Reminder: $taskTitle',
+        body: 'You have a task due soon!',
+        notificationLayout: NotificationLayout.Default,
+      ),
+      schedule: NotificationCalendar(
+        year: scheduleTime.year,
+        month: scheduleTime.month,
+        day: scheduleTime.day,
+        hour: scheduleTime.hour,
+        minute: scheduleTime.minute,
+        second: 0,
+        millisecond: 0,
+        repeats: false,
+      ),
     );
   }
 
-  Future<void> cancelNotification(int id) async {
-    await _flutterLocalNotificationsPlugin.cancel(id);
+  /// Cancel a specific task reminder
+  Future<void> cancelTaskReminder(String taskId) async {
+    await AwesomeNotifications().cancel(int.parse(taskId));
+  }
+
+  /// Cancel all notifications
+  Future<void> cancelAllNotifications() async {
+    await AwesomeNotifications().cancelAll();
+  }
+
+  /// Get a list of scheduled notifications
+  Future<List<NotificationModel>> getScheduledNotifications() async {
+    return await AwesomeNotifications().listScheduledNotifications();
+  }
+
+  /// Handle notification taps
+  void listenToNotificationTaps() {
+    AwesomeNotifications().setListeners(
+      onActionReceivedMethod: (ReceivedAction receivedAction) async {
+        print("fsdfsdjfjsdofosonActionReceivedMethod");
+        print(receivedAction.actionType);
+      },
+      onNotificationCreatedMethod: (ReceivedNotification receivedNotification) async {
+        print("fsdfsdjfjsdofosonNotificationCreatedMethod");
+        print(receivedNotification.actionType);
+      },
+      onNotificationDisplayedMethod: (ReceivedNotification receivedNotification) async {
+        print("fsdfsdjfjsdofosonNotificationDisplayedMethod");
+        print(receivedNotification.actionType);
+      },
+      onDismissActionReceivedMethod: (ReceivedAction receivedAction) async {
+        print("fsdfsdjfjsdofosonDismissActionReceivedMethod");
+        print(receivedAction.actionType);
+      },
+    );
   }
 }

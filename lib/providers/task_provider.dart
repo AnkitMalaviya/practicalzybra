@@ -19,25 +19,25 @@ final tasksProvider = FutureProvider<List<TaskModel>>((ref) async {
     tasks.sort((a, b) => a.completionAt!.compareTo(b.completionAt!)); // Sort by date (ascending order)
   }
 
-   if (preferences.sortOrder == 'priority') {
+  if (preferences.sortOrder == 'priority') {
     tasks.sort((a, b) {
       return priorityValue(b.priority!).compareTo(priorityValue(a.priority!));
     });
   }
   final filteredTasks = tasks.where((task) {
-    final matchesQuery = task.title?.toLowerCase().contains(searchQuery.toLowerCase())??false;
+    final matchesQuery = task.title?.toLowerCase().contains(searchQuery.toLowerCase()) ?? false;
     final matchesPriority = filterPriority == null || task.priority == filterPriority;
     return matchesQuery && matchesPriority;
   }).toList();
+
   return filteredTasks;
 });
 
 final selectedTaskIdProvider = StateProvider<int?>((ref) => null);
-final completeDateProvider = StateProvider<DateTime?>((ref) => null);
+final completeDateTimeProvider = StateProvider<DateTime?>((ref) => null);
 final priorityProvider = StateProvider<String>((ref) => 'Low');
 final searchQueryProvider = StateProvider<String>((ref) => '');
 final filterPriorityProvider = StateProvider<String?>((ref) => null);
-
 
 int priorityValue(String priority) {
   switch (priority) {

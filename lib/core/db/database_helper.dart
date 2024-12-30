@@ -1,5 +1,5 @@
-import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import 'package:sqflite/sqflite.dart';
 
 class DatabaseHelper {
   static const String _dbName = 'tasks.db';
@@ -29,8 +29,10 @@ class DatabaseHelper {
 
   static Future<int> insertTask(Map<String, dynamic> task) async {
     final db = await initDB();
+
     return db.insert(_tableName, task);
   }
+
   static Future<int> updateTask(Map<String, dynamic> task) async {
     final db = await initDB();
     return db.update(
@@ -40,6 +42,7 @@ class DatabaseHelper {
       whereArgs: [task["id"]],
     );
   }
+
   static Future<List<Map<String, dynamic>>> getSingleTaskById(int? id) async {
     final db = await initDB();
     return db.query(
@@ -48,6 +51,7 @@ class DatabaseHelper {
       whereArgs: [id],
     );
   }
+
   static Future<int> deleteTask(int? id) async {
     final db = await initDB();
     return db.delete(
