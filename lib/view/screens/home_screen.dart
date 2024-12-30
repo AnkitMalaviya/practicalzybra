@@ -19,6 +19,8 @@ class HomeScreen extends ConsumerWidget {
     final themeMode = ref.watch(themeProvider);
     final selectedTaskId = ref.watch(selectedTaskIdProvider);
     final isDarkMode = themeMode == ThemeMode.dark;
+    final searchQuery = ref.watch(searchQueryProvider);
+    final filterPriority = ref.watch(filterPriorityProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -48,29 +50,68 @@ class HomeScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: tasksAsyncValue.when(
-        data: (tasks) {
-          print("dfajfhgsfd");
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              onChanged: (value) {
+                ref.read(searchQueryProvider.notifier).state = value;
+              },
+              decoration: const InputDecoration(
+                labelText: 'Search Tasks',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.search),
+              ),
+            ),
+          ),
 
-          if (Responsive.isTablet(context)) {
-            return Row(
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: taskListView(tasks, ref),
-                ),
-                const VerticalDivider(),
-                Expanded(
-                  flex: 3,
-                  child: ViewTaskScreen(taskId: selectedTaskId),
-                ),
+          // Filter dropdown
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: DropdownButton<String?>(
+              value: filterPriority,
+              items: const [
+                DropdownMenuItem(value: null, child: Text('All')),
+                DropdownMenuItem(value: 'Low', child: Text('Low Priority')),
+                DropdownMenuItem(value: 'Medium', child: Text('Medium Priority')),
+                DropdownMenuItem(value: 'High', child: Text('High Priority')),
               ],
-            );
-          }
-          return taskListView(tasks, ref);
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(child: Text('Error: $error')),
+              onChanged: (value) {
+                ref.read(filterPriorityProvider.notifier).state = value;
+              },
+              isExpanded: true,
+              hint: const Text('Filter by Priority'),
+            ),
+          ),
+
+          Expanded(
+            child: tasksAsyncValue.when(
+              data: (tasks) {
+                print("dfajfhgsfd");
+
+                if (Responsive.isTablet(context)) {
+                  return Row(
+                    children: [
+                      Expanded(
+                        flex: 2,
+                        child: taskListView(tasks, ref),
+                      ),
+                      const VerticalDivider(),
+                      Expanded(
+                        flex: 3,
+                        child: ViewTaskScreen(taskId: selectedTaskId),
+                      ),
+                    ],
+                  );
+                }
+                return taskListView(tasks, ref);
+              },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (error, _) => Center(child: Text('Error: $error')),
+            ),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {

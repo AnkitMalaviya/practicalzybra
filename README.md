@@ -28,8 +28,8 @@ Before you can run this application, ensure you have the following installed:
 
 5) Clone the repository:
 
-   * git clone <repository-url>
-   * cd <project-folder>
+   * git clone <https://github.com/AnkitMalaviya/practicalzybra.git>
+   * cd <practicalzybra>
 
 6) Install dependencies:
 

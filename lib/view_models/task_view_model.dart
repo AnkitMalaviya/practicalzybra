@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../core/notification/notification_service.dart';
 import '../model/task_model.dart';
 
 import '../providers/task_provider.dart';
@@ -12,9 +13,17 @@ class TaskViewModel extends StateNotifier<List<TaskModel>> {
   Future<void> fetchTasks() async {
     state = await _repository.getTasks();
   }
-
+  final _notificationService = NotificationService();
   Future<void> addTask(TaskModel task) async {
     await _repository.addTask(task);
+    if (task.completionAt != null) {
+      _notificationService.scheduleNotification(
+        task.id.hashCode,
+        'Task Reminder',
+        'Don\'t forget to complete: ${task.title}',
+        task.completionAt!,
+      );
+    }
     await fetchTasks();
   }
 
